@@ -1,0 +1,417 @@
+@import "tailwindcss";
+
+/* ========================================
+   CLEAN BLACK & WHITE DESIGN SYSTEM
+   Dark mode: black bg, white text
+   Light mode: white bg, black text
+   ======================================== */
+
+@theme {
+  --color-primary: #000000;
+  --color-primary-light: #111111;
+  --color-secondary: #ffffff;
+  --color-border: #e5e5e5;
+  --color-border-dark: #222222;
+  --color-muted: #737373;
+  --color-muted-dark: #a3a3a3;
+  --color-surface: #f5f5f5;
+  --color-surface-dark: #0a0a0a;
+
+  --font-display: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* NOTE: do not add a bare `* { margin: 0; padding: 0 }` reset here.
+   Tailwind v4 emits its utilities inside `@layer utilities`, and unlayered
+   rules beat every layered rule regardless of specificity — such a reset
+   silently kills every p-*, m-*, and mx-auto class on the page. Preflight
+   already performs this reset in the right layer. */
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ========================================
+   LIGHT MODE (default)
+   ======================================== */
+body {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+body.dark {
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+::selection {
+  background-color: #000;
+  color: #fff;
+}
+
+body.dark ::selection {
+  background-color: #fff;
+  color: #000;
+}
+
+/* ========================================
+   SCROLLBAR
+   ======================================== */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 3px;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: #404040;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ========================================
+   IMAGE LOADING PLACEHOLDER
+   ======================================== */
+.img-placeholder {
+  background: #f0f0f0;
+  position: relative;
+}
+
+body.dark .img-placeholder {
+  background: #1a1a1a;
+}
+
+.img-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.04), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+body.dark .img-placeholder::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+.border-theme {
+  border-color: #e5e5e5;
+}
+
+body.dark .border-theme {
+  border-color: #262626;
+}
+
+.bg-surface {
+  background-color: #f5f5f5;
+}
+
+body.dark .bg-surface {
+  background-color: #111111;
+}
+
+.text-muted {
+  color: #737373;
+}
+
+body.dark .text-muted {
+  color: #a3a3a3;
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+body.dark .hover-lift:hover {
+  box-shadow: 0 12px 40px rgba(255, 255, 255, 0.04);
+}
+
+/* Card image hover zoom */
+.card-img-zoom img {
+  transition: transform 0.6s ease;
+}
+
+.card-img-zoom:hover img {
+  transform: scale(1.05);
+}
+
+/* Clean separator */
+.separator {
+  height: 1px;
+  background-color: #e5e5e5;
+}
+
+body.dark .separator {
+  background-color: #262626;
+}
+
+/* ========================================
+   SURFACE PANEL (glass, monochrome)
+   ======================================== */
+.panel {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid #e5e5e5;
+}
+
+body.dark .panel {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: #262626;
+}
+
+/* ========================================
+   CLIP-PATH REVEAL PRESETS
+   Set as inline start state so nothing flashes
+   before GSAP takes over.
+   ======================================== */
+.clip-hidden-up {
+  clip-path: inset(100% 0% 0% 0%);
+}
+
+.clip-hidden-circle {
+  clip-path: circle(0% at 50% 50%);
+}
+
+/* Angled section edge — geometric transition between sections */
+.edge-top {
+  clip-path: polygon(0 3vw, 100% 0, 100% 100%, 0 100%);
+}
+
+.edge-bottom {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3vw), 0 100%);
+}
+
+/* ========================================
+   MARQUEE
+   ======================================== */
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: var(--marquee-gap, 1.25rem);
+  /* The track holds the list twice and shifts by -50%. The trailing padding
+     makes that half exactly one full period, gap included, so the seam is
+     invisible. */
+  padding-right: var(--marquee-gap, 1.25rem);
+  animation: marquee var(--marquee-duration, 60s) linear infinite;
+  will-change: transform;
+}
+
+.marquee-track.reverse {
+  animation-direction: reverse;
+}
+
+/* Pause on hover so quotes stay readable */
+.marquee-viewport:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ========================================
+   CUSTOM CURSOR (pointer devices only)
+   ======================================== */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 9999px;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: #fff;
+}
+
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}
+
+/* ========================================
+   UNDERLINE SWEEP LINK
+   ======================================== */
+.link-sweep {
+  position: relative;
+}
+
+.link-sweep::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-sweep:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ========================================
+   PILLAR CARDS
+   Hover reveals the description on pointer devices; touch devices have no
+   hover state to discover it with, so it stays open there.
+   ======================================== */
+@media (hover: none), (pointer: coarse) {
+  .pillar-desc {
+    grid-template-rows: 1fr;
+  }
+
+  .pillar-desc p {
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   FILM GRAIN (subtle premium texture)
+   ======================================== */
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* ========================================
+   TEXT MASK REVEAL (used by AnimatedTitle)
+   ======================================== */
+.word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Breathing room so descenders (g, y, p) aren't clipped by the mask */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.word-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marquee-track {
+    animation: none;
+  }
+
+  .clip-hidden-up,
+  .clip-hidden-circle {
+    clip-path: none;
+  }
+
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}
