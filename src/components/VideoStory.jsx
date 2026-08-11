@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useLanguage } from '../context/LanguageContext';
@@ -6,10 +6,57 @@ import { prefersReducedMotion } from '../utils/animations';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const POSTER =
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Lalibela%2C_san_giorgio%2C_esterno_24.jpg/1280px-Lalibela%2C_san_giorgio%2C_esterno_24.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail';
-
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+
+/**
+ * Where chapter `i` enters the scroll timeline, and how far apart the
+ * entrances sit. The backdrop, the chapter rail and the credit all resolve the
+ * active chapter from these same two numbers, so they cannot drift out of step
+ * with the copy the way a separately-tuned progress mapping did.
+ */
+const CHAPTER_AT = 1.3;
+const CHAPTER_STEP = 1.4;
+
+/**
+ * One backdrop per chapter, in step with `t.story.segments`.
+ *
+ * Chapters II and III carry a still rather than a clip: there is no freely
+ * licensed footage of the Aksum stelae or the Lalibela churches that is not
+ * watermarked (the ZDF/Terra X material on Commons is, which is why an earlier
+ * attempt at this was abandoned). A slow push on a 1600px still is the honest
+ * substitute — showing some unrelated church instead would be worse.
+ *
+ * `credit` is per-chapter because the licences differ, and CC BY requires the
+ * attribution to be visible alongside the work it belongs to.
+ */
+const MEDIA = [
+  {
+    hd: '/video/afar-hd.mp4',
+    sd: '/video/afar-sd.mp4',
+    poster: '/images/afar-poster.jpg',
+    credit: 'Erta Ale, Afar — Alton Chang, CC BY 3.0',
+  },
+  {
+    still: '/images/aksum-still.jpg',
+    credit: 'Stelae of Aksum — Wikimedia Commons',
+  },
+  {
+    still: '/images/lalibela-still.jpg',
+    credit: 'Bet Giyorgis, Lalibela — Wikimedia Commons',
+  },
+  {
+    hd: '/video/adwa-hd.mp4',
+    sd: '/video/adwa-sd.mp4',
+    poster: '/images/adwa-poster.jpg',
+    credit: 'League of Nations, 1935 — public domain',
+  },
+  {
+    hd: '/video/ethiopia-hd.mp4',
+    sd: '/video/ethiopia-sd.mp4',
+    poster: '/images/addis-poster.jpg',
+    credit: 'Addis Ababa — Pexels',
+  },
+];
 
 /**
  * The cinematic chapter of the page.
@@ -25,28 +72,37 @@ const VideoStory = () => {
 
   const sectionRef = useRef(null);
   const frameRef = useRef(null);
-  const videoRef = useRef(null);
+  const mediaRef = useRef(null);
+  const videoRefs = useRef([]);
   const progressRef = useRef(null);
   const introRef = useRef(null);
   const chapterRefs = useRef([]);
   const activeRef = useRef(0);
+  const pinnedRef = useRef(false);
 
   const [active, setActive] = useState(0);
   const [videoOk, setVideoOk] = useState(true);
 
-  // Lightweight local MP4s — HD (2.4 MB) for desktop, SD (0.95 MB) for phones.
-  // Small enough to stream smoothly even on weak connections.
-  const [src] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 768
-      ? '/video/ethiopia-sd.mp4'
-      : '/video/ethiopia-hd.mp4'
-  );
+  // Every clip ships at two sizes; phones take the SD cut.
+  const [small] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    // Browsers that can't decode MP4/H.264 get the poster still instead.
-    if (!video.canPlayType('video/mp4')) setVideoOk(false);
+    // Browsers that can't decode MP4/H.264 fall back to each chapter's still.
+    const probe = document.createElement('video');
+    if (!probe.canPlayType('video/mp4')) setVideoOk(false);
+  }, []);
+
+  /**
+   * Only the on-screen chapter's clip is allowed to play, and only while the
+   * section is pinned — otherwise five decoders run at once for footage nobody
+   * is looking at. Reads refs only, so it stays stable for the GSAP callbacks.
+   */
+  const applyPlayback = useCallback(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === activeRef.current && pinnedRef.current) v.play().catch(() => {});
+      else v.pause();
+    });
   }, []);
 
   useEffect(() => {
@@ -54,7 +110,7 @@ const VideoStory = () => {
 
     const ctx = gsap.context(() => {
       const frame = frameRef.current;
-      const video = videoRef.current;
+      const media = mediaRef.current;
       const chapters = chapterRefs.current.filter(Boolean);
 
       if (reduced) {
@@ -80,22 +136,23 @@ const VideoStory = () => {
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             gsap.set(progressRef.current, { scaleX: self.progress });
-            // Map scroll progress onto the chapter rail, only re-rendering
-            // React when the active index actually changes.
-            const raw = (self.progress - 0.12) / 0.88;
+            // Resolve the chapter from the timeline's own clock rather than
+            // re-deriving it from progress, so the backdrop swaps on exactly
+            // the beat the copy does. Only re-render when the index changes.
+            const time = self.progress * (self.animation?.duration() || 1);
             const idx = Math.min(
               segments.length - 1,
-              Math.max(0, Math.floor(raw * segments.length))
+              Math.max(0, Math.floor((time - CHAPTER_AT) / CHAPTER_STEP))
             );
             if (idx !== activeRef.current) {
               activeRef.current = idx;
               setActive(idx);
+              applyPlayback();
             }
           },
           onToggle: (self) => {
-            if (!video) return;
-            if (self.isActive) video.play().catch(() => {});
-            else video.pause();
+            pinnedRef.current = self.isActive;
+            applyPlayback();
           },
         },
       });
@@ -107,12 +164,12 @@ const VideoStory = () => {
         { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1.2, ease: 'power2.inOut' },
         0
       )
-        .fromTo(video, { scale: 1.22 }, { scale: 1, duration: 1.2, ease: 'power2.inOut' }, 0)
+        .fromTo(media, { scale: 1.22 }, { scale: 1, duration: 1.2, ease: 'power2.inOut' }, 0)
         .to(introRef.current, { opacity: 0, yPercent: -30, duration: 0.5, ease: 'power2.in' }, 0.5);
 
       // 2. Story beats cross-fade one after another.
       chapters.forEach((el, i) => {
-        const at = 1.3 + i * 1.4;
+        const at = CHAPTER_AT + i * CHAPTER_STEP;
         tl.fromTo(
           el,
           { opacity: 0, yPercent: 35 },
@@ -126,7 +183,7 @@ const VideoStory = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [segments]);
+  }, [segments, applyPlayback]);
 
   return (
     <section
@@ -142,26 +199,45 @@ const VideoStory = () => {
         // full-bleed video before ScrollTrigger takes over.
         style={{ clipPath: 'inset(14% 16% 14% 16% round 28px)' }}
       >
-        <img
-          src={POSTER}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-
-        {videoOk && (
-          <video
-            ref={videoRef}
-            className="absolute inset-0 w-full h-full object-cover"
-            src={src}
-            poster={POSTER}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            onError={() => setVideoOk(false)}
-          />
-        )}
+        {/* One layer per chapter; only the active one is opaque. The still
+            underneath each clip doubles as its poster, so a chapter never
+            flashes black while its video buffers. */}
+        <div ref={mediaRef} className="absolute inset-0">
+          {segments.map((seg, i) => {
+            const m = MEDIA[i % MEDIA.length];
+            return (
+              <div
+                key={seg.heading}
+                className="absolute inset-0 transition-opacity duration-[900ms] ease-out"
+                style={{ opacity: active === i ? 1 : 0 }}
+                aria-hidden="true"
+              >
+                <img
+                  src={m.still || m.poster}
+                  alt=""
+                  className={`absolute inset-0 h-full w-full object-cover ${
+                    m.still ? 'story-push' : ''
+                  }`}
+                />
+                {videoOk && m.hd && (
+                  <video
+                    ref={(el) => (videoRefs.current[i] = el)}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    src={small ? m.sd : m.hd}
+                    poster={m.poster}
+                    muted
+                    loop
+                    playsInline
+                    // Only the first chapter is worth fetching up front; the
+                    // rest load when the visitor actually scrolls to them.
+                    preload={i === 0 ? 'auto' : 'none'}
+                    onError={() => setVideoOk(false)}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         {/* Legibility scrim */}
         <div className="absolute inset-0 bg-black/55" />
@@ -234,9 +310,9 @@ const VideoStory = () => {
         <span className="block w-px h-8 bg-gradient-to-b from-white/50 to-transparent" />
       </div>
 
-      {/* Footage credit */}
-      <p className="absolute bottom-3 right-4 md:right-6 z-20 text-[9px] tracking-wider uppercase text-white/30">
-        Footage: Pexels · Free to use
+      {/* Credit tracks the chapter, since each backdrop carries its own licence */}
+      <p className="absolute bottom-3 right-4 md:right-6 z-20 max-w-[70vw] text-right text-[9px] tracking-wider uppercase text-white/30 transition-opacity duration-500">
+        {MEDIA[active % MEDIA.length].credit}
       </p>
 
       {/* Progress rail */}

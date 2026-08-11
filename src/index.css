@@ -251,6 +251,22 @@ body.dark .panel {
 }
 
 /* ========================================
+   STORY STILL PUSH
+   Chapters with no clean footage get a slow drift instead of a frozen frame.
+   The reduced-motion block below collapses this to a static, slightly
+   enlarged frame, which is the intended fallback.
+   ======================================== */
+@keyframes story-push {
+  from { transform: scale(1); }
+  to   { transform: scale(1.12); }
+}
+
+.story-push {
+  animation: story-push 32s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* ========================================
    MARQUEE
    ======================================== */
 @keyframes marquee {

@@ -16,7 +16,7 @@ npm run lint
 | ---------------- | -------------------- | ---------------------------------------------------------------------------- |
 | Hero             | `Hero.jsx`           | Clip-path wipe reveal, masked headline, parallax drift, magnetic CTA          |
 | About            | `About.jsx`          | Staggered copy reveal, clip-path stats panel, animated counters               |
-| Story            | `VideoStory.jsx`     | Pinned section; video frame expands from a centred window to full bleed       |
+| Story            | `VideoStory.jsx`     | Pinned section; frame expands to full bleed, per-chapter backdrops cross-fade |
 | Pillars          | `Features.jsx`       | Bento grid, per-card clip-path reveal, 3D tilt, video-on-hover for two cards  |
 | Places           | `Places.jsx`         | 22 heritage sites, category filter, row-by-row reveal + scroll-linked parallax |
 | — full screen    | `PlaceLightbox.jsx`  | Photo morphs out of its card; arrow keys, prev/next, Escape, scroll lock       |
@@ -53,8 +53,30 @@ Global chrome: `ScrollProgress.jsx` (reading progress hairline) and
 
 ## Media
 
-All imagery and footage comes from Wikimedia Commons. Place photos are hot-linked
-Commons thumbnails; the story clips are checked into `public/video/` as WebM.
+Place photos are hot-linked Commons thumbnails. Everything the story section
+uses is checked into `public/`, encoded at two sizes (HD + SD, phones take SD)
+with a poster still each, so a chapter never flashes black while its clip
+buffers. Browsers that cannot decode H.264 fall back to those stills.
+
+`VideoStory` gives every chapter its own backdrop, each under its own licence,
+so the on-screen credit is per-chapter rather than one blanket line:
+
+| Chapter | Backdrop | Source | Licence |
+| ------- | -------- | ------ | ------- |
+| I Dawn of Humanity  | Erta Ale lava lake, Afar | Alton Chang, Commons | CC BY 3.0 |
+| II Kingdom of Aksum | Stelae of Aksum *(still)* | Wikimedia Commons | CC BY-SA |
+| III Hewn From Rock  | Bet Giyorgis, Lalibela *(still)* | Wikimedia Commons | CC BY-SA |
+| IV Never Colonised  | League of Nations, 1935 | Commons / League of Nations | Public domain |
+| V A Living Heritage | Addis Ababa | Pexels | Free to use |
+
+Chapters II and III carry a slow push on a still rather than a clip: there is no
+freely licensed footage of the Aksum stelae or the Lalibela churches that is not
+watermarked. Showing an unrelated church would be worse than an honest still.
+
+The clips were cut from Commons' own 720p transcodes with `ffmpeg` (a local
+tool, not a project dependency). The 1935 film is pillarboxed and carries
+burned-in period subtitles, so it is cropped — `crop=964:488:158:216` — to drop
+both; left in, the subtitles collide with the chapter headings.
 
 Commons only renders certain **bucket widths** — for these files 1600px and
 2000px both return 400 while 1920px resolves, and bursts of requests get a 429.
@@ -63,5 +85,3 @@ probes the 1920px URL off-screen and only swaps the source on a successful load,
 so a rejected upgrade silently leaves the 1280px grid image in place. Two of the
 22 entries are direct file URLs rather than `/thumb/` URLs and are skipped
 entirely.
-The Lalibela clip is ZDF/Terra X, CC BY-SA 4.0, credited on screen. Browsers that
-cannot decode WebM fall back to the poster still automatically.
