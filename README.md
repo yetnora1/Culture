@@ -19,6 +19,7 @@ npm run lint
 | Story            | `VideoStory.jsx`     | Pinned section; video frame expands from a centred window to full bleed       |
 | Pillars          | `Features.jsx`       | Bento grid, per-card clip-path reveal, 3D tilt, video-on-hover for two cards  |
 | Places           | `Places.jsx`         | 22 heritage sites, category filter, row-by-row reveal + scroll-linked parallax |
+| — full screen    | `PlaceLightbox.jsx`  | Photo morphs out of its card; arrow keys, prev/next, Escape, scroll lock       |
 | Voices           | `Testimonials.jsx`   | Two counter-scrolling marquees that pause on hover                            |
 | Footer           | `Footer.jsx`         | Oversized drifting wordmark, magnetic back-to-top                             |
 
@@ -54,5 +55,13 @@ Global chrome: `ScrollProgress.jsx` (reading progress hairline) and
 
 All imagery and footage comes from Wikimedia Commons. Place photos are hot-linked
 Commons thumbnails; the story clips are checked into `public/video/` as WebM.
+
+Commons only renders certain **bucket widths** — for these files 1600px and
+2000px both return 400 while 1920px resolves, and bursts of requests get a 429.
+`PlaceLightbox` therefore treats its higher-resolution fetch as best-effort: it
+probes the 1920px URL off-screen and only swaps the source on a successful load,
+so a rejected upgrade silently leaves the 1280px grid image in place. Two of the
+22 entries are direct file URLs rather than `/thumb/` URLs and are skipped
+entirely.
 The Lalibela clip is ZDF/Terra X, CC BY-SA 4.0, credited on screen. Browsers that
 cannot decode WebM fall back to the poster still automatically.

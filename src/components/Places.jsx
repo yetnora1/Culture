@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import places, { categories } from '../data/places';
 import PlaceCard from './PlaceCard';
+import PlaceLightbox from './PlaceLightbox';
 import AnimatedTitle from './AnimatedTitle';
 import { prefersReducedMotion } from '../utils/animations';
 
@@ -47,6 +48,9 @@ const Places = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [displayedPlaces, setDisplayedPlaces] = useState(places);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  // Index into displayedPlaces, so the viewer's prev/next walks the same set
+  // the visitor is currently filtered to.
+  const [lightboxIndex, setLightboxIndex] = useState(null);
   const sectionRef = useRef(null);
   const gridRef = useRef(null);
 
@@ -240,7 +244,11 @@ const Places = () => {
           className="grid min-h-[600px] grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 xl:grid-cols-3"
         >
           {displayedPlaces.map((place) => (
-            <PlaceCard key={place.id} place={place} />
+            <PlaceCard
+              key={place.id}
+              place={place}
+              onOpen={(id) => setLightboxIndex(displayedPlaces.findIndex((p) => p.id === id))}
+            />
           ))}
         </div>
 
@@ -251,6 +259,15 @@ const Places = () => {
           {displayedPlaces.length} {lang === 'am' ? 'ቦታዎች' : 'places'}
         </p>
       </div>
+
+      {lightboxIndex !== null && (
+        <PlaceLightbox
+          places={displayedPlaces}
+          index={lightboxIndex}
+          onNavigate={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </section>
   );
 };

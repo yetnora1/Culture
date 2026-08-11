@@ -18,7 +18,7 @@ gsap.registerPlugin(ScrollTrigger);
  * Inline styles beat classes, so any overlap here would silently cancel a
  * Tailwind hover transform.
  */
-const PlaceCard = ({ place }) => {
+const PlaceCard = ({ place, onOpen }) => {
   const { isDark } = useTheme();
   const { lang } = useLanguage();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -55,7 +55,7 @@ const PlaceCard = ({ place }) => {
   }, [expanded]);
 
   return (
-    <article className="place-card">
+    <article className="place-card" data-place-id={place.id}>
       <div
         ref={frameRef}
         onPointerMove={handlePointerMove}
@@ -76,8 +76,16 @@ const PlaceCard = ({ place }) => {
           }}
         />
 
-        {/* Media — tall editorial crop, filling most of the card */}
-        <div className="relative aspect-[4/5] overflow-hidden">
+        {/* Media — tall editorial crop, filling most of the card. Clicking the
+            photo opens it full screen; the text block below still toggles the
+            description. */}
+        <div
+          className="place-card-figure relative aspect-[4/5] overflow-hidden"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen?.(place.id);
+          }}
+        >
           {/* Overscans the frame by 8% top and bottom so the scroll parallax
               never exposes an edge. */}
           <div className="place-card-media absolute inset-x-0 -inset-y-[8%]">
@@ -143,17 +151,25 @@ const PlaceCard = ({ place }) => {
             )}
           </div>
 
-          {/* Hover affordance */}
-          <div
-            className={`absolute bottom-5 right-5 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full opacity-0 backdrop-blur-md transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0 group-hover:opacity-100 md:bottom-6 md:right-6 ${
+          {/* Opens the photo full screen. Stays reachable by keyboard even
+              though it only becomes visible on hover. */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen?.(place.id);
+            }}
+            aria-label={
+              lang === 'am' ? `${name} — በሙሉ ስክሪን ይክፈቱ` : `Open ${name} full screen`
+            }
+            className={`absolute bottom-5 right-5 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full opacity-0 backdrop-blur-md transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 group-hover:translate-y-0 group-hover:opacity-100 md:bottom-6 md:right-6 ${
               isDark ? 'bg-white text-black shadow-lg' : 'bg-black text-white shadow-lg'
             }`}
-            aria-hidden="true"
           >
-            <svg className={`h-4 w-4 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H9M17 7v8" />
             </svg>
-          </div>
+          </button>
         </div>
 
         {/* Content */}
