@@ -104,12 +104,8 @@ const Navbar = () => {
             ? `${isDark ? 'bg-black/90' : 'bg-white/90'} backdrop-blur-md shadow-sm border-b ${
                 isDark ? 'border-neutral-800' : 'border-neutral-200'
               } py-3`
-            : // Unscrolled, the bar sits over the hero photograph. Scrim only —
-              // no backdrop-blur here: it clips hard at the bar's bounds and
-              // leaves a visibly smeared band across the top of the photo.
-              `bg-gradient-to-b ${
-                isDark ? 'from-black/85 via-black/40' : 'from-white/90 via-white/50'
-              } to-transparent py-5`
+            : // Unscrolled — fully transparent so the hero photo shows cleanly.
+              'bg-transparent py-5'
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
