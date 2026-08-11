@@ -75,7 +75,7 @@ const Places = () => {
     });
   };
 
-  // Modern Entry Animation whenever displayedPlaces updates
+  // Modern Entry Animation with ScrollTrigger whenever displayedPlaces updates
   useEffect(() => {
     if (!gridRef.current) return;
     const cards = gridRef.current.querySelectorAll('.place-card');
@@ -90,41 +90,50 @@ const Places = () => {
       return;
     }
 
-    const tween = gsap.fromTo(
-      cards,
-      {
-        clipPath: 'inset(40% 0% 0% 0% round 16px)',
-        y: 45,
-        opacity: 0,
-        scale: 0.92,
-        filter: 'blur(10px)',
-      },
-      {
-        clipPath: 'inset(0% 0% 0% 0% round 16px)',
-        y: 0,
-        opacity: 1,
-        scale: 1,
-        filter: 'blur(0px)',
-        duration: 0.75,
-        stagger: 0.07,
-        ease: 'power3.out',
-        onComplete: () => setIsTransitioning(false),
-      }
-    );
+    const ctx = gsap.context(() => {
+      cards.forEach((card, idx) => {
+        gsap.fromTo(
+          card,
+          {
+            clipPath: 'inset(35% 0% 0% 0% round 20px)',
+            y: 55,
+            opacity: 0,
+            scale: 0.93,
+            filter: 'blur(10px)',
+          },
+          {
+            clipPath: 'inset(0% 0% 0% 0% round 20px)',
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            filter: 'blur(0px)',
+            duration: 0.85,
+            delay: (idx % 3) * 0.08,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: card,
+              start: 'top 90%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+      setIsTransitioning(false);
+    }, gridRef);
 
-    return () => tween.kill();
+    return () => ctx.revert();
   }, [displayedPlaces]);
 
   return (
     <section
       id="places"
       ref={sectionRef}
-      className="py-24 md:py-32 relative overflow-hidden"
+      className="py-24 md:py-36 relative overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
         {/* Header */}
-        <div ref={headerRef} className="mb-12 md:mb-16">
-          <p className={`places-header-item text-xs tracking-[0.3em] uppercase mb-4 ${
+        <div ref={headerRef} className="mb-14 md:mb-20">
+          <p className={`places-header-item text-xs tracking-[0.35em] uppercase mb-4 font-semibold ${
             isDark ? 'text-neutral-500' : 'text-neutral-400'
           }`}>
             {t.places.eyebrow}
@@ -132,17 +141,17 @@ const Places = () => {
 
           <AnimatedTitle
             text={t.places.title}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-4"
+            className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-none mb-6"
           />
 
-          <p className={`places-header-item max-w-2xl text-base md:text-lg leading-relaxed mb-10 ${
-            isDark ? 'text-neutral-400' : 'text-neutral-600'
+          <p className={`places-header-item max-w-3xl text-base md:text-xl leading-relaxed mb-12 ${
+            isDark ? 'text-neutral-300' : 'text-neutral-600'
           }`}>
             {t.places.subtitle}
           </p>
 
           {/* Category Filter */}
-          <div className="places-header-item flex flex-wrap gap-2.5">
+          <div className="places-header-item flex flex-wrap gap-3">
             {categories.map((cat) => {
               const isActive = activeCategory === cat.id;
               return (
@@ -150,14 +159,14 @@ const Places = () => {
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
                   disabled={isTransitioning}
-                  className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border ${
+                  className={`relative px-6 py-3 rounded-full text-sm font-semibold tracking-wide transition-all duration-300 border ${
                     isActive
                       ? isDark
-                        ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]'
-                        : 'bg-black text-white border-black shadow-[0_4px_15px_rgba(0,0,0,0.15)]'
+                        ? 'bg-white text-black border-white shadow-[0_0_25px_rgba(255,255,255,0.25)] scale-105'
+                        : 'bg-black text-white border-black shadow-[0_8px_25px_rgba(0,0,0,0.2)] scale-105'
                       : isDark
-                        ? 'bg-neutral-900/50 text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-white hover:bg-neutral-800/60'
-                        : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:border-neutral-400 hover:text-black hover:bg-neutral-100'
+                        ? 'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-white hover:bg-neutral-800/80'
+                        : 'bg-neutral-100/80 text-neutral-600 border-neutral-200/80 hover:border-neutral-400 hover:text-black hover:bg-neutral-200/60'
                   }`}
                 >
                   {cat[lang]}
@@ -167,10 +176,10 @@ const Places = () => {
           </div>
         </div>
 
-        {/* Places Grid */}
+        {/* Places Grid with Bigger Cards */}
         <div
           ref={gridRef}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 min-h-[400px]"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 min-h-[500px]"
         >
           {displayedPlaces.map((place) => (
             <PlaceCard key={place.id} place={place} />
@@ -178,7 +187,7 @@ const Places = () => {
         </div>
 
         {/* Count */}
-        <p className={`mt-12 text-center text-sm font-medium tracking-wide ${
+        <p className={`mt-16 text-center text-sm font-semibold tracking-widest uppercase ${
           isDark ? 'text-neutral-500' : 'text-neutral-400'
         }`}>
           {displayedPlaces.length} {lang === 'am' ? 'ቦታዎች' : 'places'}

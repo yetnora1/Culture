@@ -73,8 +73,8 @@ const PlaceCard = ({ place }) => {
         }}
       />
 
-      {/* Image Container */}
-      <div className="relative aspect-[16/10] overflow-hidden">
+      {/* Image Container — Bigger aspect ratio and height for hero-like presence */}
+      <div className="relative aspect-[4/3] sm:aspect-[16/11] min-h-[260px] sm:min-h-[300px] overflow-hidden">
         {/* Shimmer placeholder */}
         {!imageLoaded && !imageError && (
           <div className={`absolute inset-0 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
@@ -109,7 +109,7 @@ const PlaceCard = ({ place }) => {
         <img
           src={place.image}
           alt={name}
-          className={`w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out ${
+          className={`w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700 ease-out ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           loading="lazy"
@@ -119,7 +119,7 @@ const PlaceCard = ({ place }) => {
         />
 
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-60 group-hover:opacity-85 transition-opacity duration-500" />
 
         {/* Year badge */}
         <div className={`absolute top-3.5 left-3.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide backdrop-blur-md transition-all duration-300 group-hover:scale-105 ${

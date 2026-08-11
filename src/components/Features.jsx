@@ -164,7 +164,7 @@ const Features = () => {
     if (!cards.length) return;
 
     if (prefersReducedMotion()) {
-      gsap.set(cards, { clipPath: 'none', opacity: 1, y: 0 });
+      gsap.set(cards, { clipPath: 'none', opacity: 1, y: 0, filter: 'blur(0px)' });
       return;
     }
 
@@ -172,10 +172,12 @@ const Features = () => {
       cards.forEach((card, i) => {
         gsap.fromTo(
           card,
-          { clipPath: 'inset(100% 0% 0% 0% round 12px)', y: 40 },
+          { clipPath: 'inset(35% 0% 0% 0% round 16px)', y: 55, filter: 'blur(8px)', scale: 0.94 },
           {
-            clipPath: 'inset(0% 0% 0% 0% round 12px)',
+            clipPath: 'inset(0% 0% 0% 0% round 16px)',
             y: 0,
+            scale: 1,
+            filter: 'blur(0px)',
             duration: 1,
             ease: 'power3.out',
             delay: (i % 3) * 0.09,
@@ -193,11 +195,11 @@ const Features = () => {
   }, []);
 
   return (
-    <section id="pillars" ref={sectionRef} className="py-24 md:py-32">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="max-w-2xl mb-12 md:mb-16">
+    <section id="pillars" ref={sectionRef} className="py-24 md:py-36">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+        <div className="max-w-3xl mb-14 md:mb-20">
           <p
-            className={`text-xs tracking-[0.3em] uppercase mb-4 ${
+            className={`text-xs tracking-[0.35em] uppercase mb-4 font-semibold ${
               isDark ? 'text-neutral-500' : 'text-neutral-400'
             }`}
           >
@@ -206,19 +208,19 @@ const Features = () => {
 
           <AnimatedTitle
             text={t.pillars.title}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-4"
+            className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-none mb-6"
           />
 
           <p
-            className={`text-base md:text-lg leading-relaxed ${
-              isDark ? 'text-neutral-400' : 'text-neutral-600'
+            className={`text-base md:text-xl leading-relaxed ${
+              isDark ? 'text-neutral-300' : 'text-neutral-600'
             }`}
           >
             {t.pillars.subtitle}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5 auto-rows-[240px] md:auto-rows-[270px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 auto-rows-[300px] md:auto-rows-[360px]">
           {t.pillars.items.map((item, i) => (
             <PillarCard
               key={media[i].key}
