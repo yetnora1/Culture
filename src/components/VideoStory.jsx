@@ -34,11 +34,18 @@ const VideoStory = () => {
   const [active, setActive] = useState(0);
   const [videoOk, setVideoOk] = useState(true);
 
-  // Pick a lighter encode for small screens — decided once, on mount.
+  // Watermark-free Wikimedia Commons transcodes — the local copies carried the
+  // "Terra X" watermark baked into the footage, so we stream directly from the
+  // CDN instead. 480 p for desktop, 240 p for phones.
+  const VIDEO_BASE =
+    'https://upload.wikimedia.org/wikipedia/commons/transcoded/b/be/' +
+    'The_monolithic_rock-hewn_churches_of_Lalibela%2C_Terra_X_%28English_redub%29.webm/' +
+    'The_monolithic_rock-hewn_churches_of_Lalibela%2C_Terra_X_%28English_redub%29.webm';
+
   const [src] = useState(() =>
     typeof window !== 'undefined' && window.innerWidth < 768
-      ? '/video/lalibela-360.webm'
-      : '/video/lalibela.webm'
+      ? `${VIDEO_BASE}.240p.vp9.webm`
+      : `${VIDEO_BASE}.480p.vp9.webm`
   );
 
   useEffect(() => {
