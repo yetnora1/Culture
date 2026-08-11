@@ -18,7 +18,7 @@ npm run lint
 | About            | `About.jsx`          | Staggered copy reveal, clip-path stats panel, animated counters               |
 | Story            | `VideoStory.jsx`     | Pinned section; video frame expands from a centred window to full bleed       |
 | Pillars          | `Features.jsx`       | Bento grid, per-card clip-path reveal, 3D tilt, video-on-hover for two cards  |
-| Places           | `Places.jsx`         | 22 heritage sites, category filter, cards re-deal with a clip-path wipe       |
+| Places           | `Places.jsx`         | 22 heritage sites, category filter, row-by-row reveal + scroll-linked parallax |
 | Voices           | `Testimonials.jsx`   | Two counter-scrolling marquees that pause on hover                            |
 | Footer           | `Footer.jsx`         | Oversized drifting wordmark, magnetic back-to-top                             |
 
@@ -36,6 +36,12 @@ Global chrome: `ScrollProgress.jsx` (reading progress hairline) and
   already-zeroed value as its destination and leaves the element invisible.
   Anything inside a `gsap.context()` with `ctx.revert()` cleanup is safe either
   way.
+- **ScrollTriggers created in a `useLayoutEffect` need `refreshPriority: -1`.**
+  `VideoStory` pins from a `useEffect`, and React flushes every layout effect
+  before any passive effect — so a layout-effect trigger is measured before the
+  pin's spacer exists and lands thousands of pixels off. ScrollTrigger
+  re-measures in creation order, so `refresh()` never repairs it; only a lower
+  refresh priority does. `Places.jsx` depends on this.
 - **Headline reveals go through `AnimatedTitle`**, which takes a `text` string
   (not children) so the word split re-runs when the language changes.
 - **Reduced motion is honoured everywhere** — `prefersReducedMotion()` in
