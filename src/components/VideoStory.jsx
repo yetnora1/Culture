@@ -34,25 +34,19 @@ const VideoStory = () => {
   const [active, setActive] = useState(0);
   const [videoOk, setVideoOk] = useState(true);
 
-  // Watermark-free Wikimedia Commons transcodes — the local copies carried the
-  // "Terra X" watermark baked into the footage, so we stream directly from the
-  // CDN instead. 480 p for desktop, 240 p for phones.
-  const VIDEO_BASE =
-    'https://upload.wikimedia.org/wikipedia/commons/transcoded/b/be/' +
-    'The_monolithic_rock-hewn_churches_of_Lalibela%2C_Terra_X_%28English_redub%29.webm/' +
-    'The_monolithic_rock-hewn_churches_of_Lalibela%2C_Terra_X_%28English_redub%29.webm';
-
+  // Lightweight local MP4s — HD (2.4 MB) for desktop, SD (0.95 MB) for phones.
+  // Small enough to stream smoothly even on weak connections.
   const [src] = useState(() =>
     typeof window !== 'undefined' && window.innerWidth < 768
-      ? `${VIDEO_BASE}.240p.vp9.webm`
-      : `${VIDEO_BASE}.480p.vp9.webm`
+      ? '/video/ethiopia-sd.mp4'
+      : '/video/ethiopia-hd.mp4'
   );
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    // Browsers without WebM decoding get the poster still instead.
-    if (!video.canPlayType('video/webm')) setVideoOk(false);
+    // Browsers that can't decode MP4/H.264 get the poster still instead.
+    if (!video.canPlayType('video/mp4')) setVideoOk(false);
   }, []);
 
   useEffect(() => {
@@ -240,9 +234,9 @@ const VideoStory = () => {
         <span className="block w-px h-8 bg-gradient-to-b from-white/50 to-transparent" />
       </div>
 
-      {/* Footage credit — the clip is CC BY-SA, which requires attribution */}
+      {/* Footage credit */}
       <p className="absolute bottom-3 right-4 md:right-6 z-20 text-[9px] tracking-wider uppercase text-white/30">
-        Footage: ZDF/Terra X · CC BY-SA 4.0
+        Footage: Pexels · Free to use
       </p>
 
       {/* Progress rail */}
